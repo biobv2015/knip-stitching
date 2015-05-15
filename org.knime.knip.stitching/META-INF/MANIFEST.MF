@@ -25,7 +25,7 @@ Require-Bundle: org.knime.base,
  ij
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ClassPath: knip-example.jar,
- libs/Stitching_-3.0.3-SNAPSHOT.jar,
- libs/legacy-imglib1-1.1.3-DEPRECATED.jar
+ libs/legacy-imglib1-1.1.3-DEPRECATED.jar,
+ libs/Stitching_-3.0.3-SNAPSHOT.jar
 Bundle-ActivationPolicy: lazy
 
