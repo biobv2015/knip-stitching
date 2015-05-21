@@ -29,6 +29,7 @@ Bundle-ClassPath: knip-example.jar,
  libs/Stitching_-3.0.3-SNAPSHOT.jar,
  libs/mpicbg-1.0.1.jar,
  libs/imglib2-ij-2.0.0-beta-30.jar,
- libs/Fiji_Plugins-3.0.0.jar
+ libs/Fiji_Plugins-3.0.0.jar,
+ libs/mines-jtk-20100113.jar
 Bundle-ActivationPolicy: lazy
 

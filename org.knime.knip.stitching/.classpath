@@ -3,10 +3,11 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry exported="true" kind="lib" path="libs/legacy-imglib1-1.1.3-DEPRECATED.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/legacy-imglib1-1.1.3-DEPRECATED.jar" sourcepath="/home/gabriel/.m2/repository/sc/fiji/legacy-imglib1/1.1.3-DEPRECATED/legacy-imglib1-1.1.3-DEPRECATED-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/Stitching_-3.0.3-SNAPSHOT.jar" sourcepath="/Stitching_/src"/>
 	<classpathentry exported="true" kind="lib" path="libs/mpicbg-1.0.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/imglib2-ij-2.0.0-beta-30.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/Fiji_Plugins-3.0.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/mines-jtk-20100113.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
