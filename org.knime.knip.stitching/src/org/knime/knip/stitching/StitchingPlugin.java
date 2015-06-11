@@ -24,20 +24,16 @@ public class StitchingPlugin<T extends RealType<T>> implements Command {
     @Parameter(type = ItemIO.INPUT, label = "Image 2")
     private ImagePlus input2;
 
-    @Parameter(type = ItemIO.INPUT, label = "Absolute Threshold")
-    private double absoluteThreshold = 5;
-
     @Parameter(type = ItemIO.INPUT, label = "Check Peaks")
-    private int checkPeaks = 1;
-
+    private int checkPeaks = 200;
     @Parameter(type = ItemIO.INPUT, label = "Fusion Method")
-    private int fusionMethod = 0;
+    private int fusionMethod = 1;
 
     @Parameter(type = ItemIO.INPUT, label = "Channel img 1")
-    private int channelImg1 = 2;
+    private int channelImg1 = 0;
 
     @Parameter(type = ItemIO.INPUT, label = "Channel img 2")
-    private int channelImg2 = 2;
+    private int channelImg2 = 0;
 
     @Parameter(type = ItemIO.INPUT, label = "Add Tiles as Rois")
     private boolean addTilesAsRois = false;
@@ -51,6 +47,12 @@ public class StitchingPlugin<T extends RealType<T>> implements Command {
     @Parameter(type = ItemIO.INPUT, label = "Name of Fused Image")
     private String fusedName = "Fused";
 
+    @Parameter(type = ItemIO.INPUT, label = "subPixel accuracy")
+    private boolean subPixelAccuracy = true;
+
+    @Parameter(type = ItemIO.INPUT, label = "Dimensionality")
+    private int dimensionality = 2;
+
     @Parameter(type = ItemIO.OUTPUT)
     private ImagePlus output;
 
@@ -58,17 +60,21 @@ public class StitchingPlugin<T extends RealType<T>> implements Command {
     public void run() {
 
         StitchingParameters params = new StitchingParameters();
-        params.absoluteThreshold = absoluteThreshold;
+
+        // from user
         params.addTilesAsRois = addTilesAsRois;
         params.checkPeaks = checkPeaks;
-        params.computeOverlap = computeOverlap;
-        // params.displayFusion = true;
         params.downSample = downSample;
         params.fusedName = fusedName;
         params.fusionMethod = fusionMethod;
-        params.dimensionality = 2;
-        params.channel1 = channelImg1;
-        params.channel2 = channelImg2;
+        params.subpixelAccuracy = subPixelAccuracy;
+        params.dimensionality = dimensionality;
+
+        // required
+        params.computeOverlap = true;
+        // always use all channels
+        params.channel1 = 0;
+        params.channel2 = 0;
 
         input1.setRoi(createRoi(input1));
         input2.setRoi(createRoi(input2));
