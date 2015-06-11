@@ -2,7 +2,7 @@ package org.knime.knip.stitching;
 
 import ij.ImagePlus;
 import ij.gui.Roi;
-import mpicbg.stitching.plugins.Stitching_Pairwise;
+import mpicbg.stitching.plugin.Stitching_Pairwise;
 import mpicbg.stitching.stitching.StitchingParameters;
 import net.imglib2.type.numeric.RealType;
 
