@@ -1,9 +1,10 @@
 package org.knime.knip.stitching;
 
-import ij.ImagePlus;
-import ij.gui.Roi;
+import mpicbg.stitching.math.CommonFunctions.FusionType;
 import mpicbg.stitching.plugin.Stitching_Pairwise;
 import mpicbg.stitching.stitching.StitchingParameters;
+import net.imagej.ImgPlus;
+import net.imagej.ops.OpService;
 import net.imglib2.type.numeric.RealType;
 
 import org.scijava.ItemIO;
@@ -19,15 +20,13 @@ import org.scijava.plugin.Plugin;
 public class StitchingPlugin<T extends RealType<T>> implements Command {
 
     @Parameter(type = ItemIO.INPUT, label = "Image 1")
-    private ImagePlus input1;
+    private ImgPlus<T> input1;
 
     @Parameter(type = ItemIO.INPUT, label = "Image 2")
-    private ImagePlus input2;
+    private ImgPlus<T> input2;
 
     @Parameter(type = ItemIO.INPUT, label = "Check Peaks")
     private int checkPeaks = 200;
-    @Parameter(type = ItemIO.INPUT, label = "Fusion Method")
-    private int fusionMethod = 1;
 
     @Parameter(type = ItemIO.INPUT, label = "Channel img 1")
     private int channelImg1 = 0;
@@ -53,8 +52,17 @@ public class StitchingPlugin<T extends RealType<T>> implements Command {
     @Parameter(type = ItemIO.INPUT, label = "Dimensionality")
     private int dimensionality = 2;
 
+    @Parameter(type = ItemIO.INPUT)
+    private OpService ops;
+
+    @Parameter(type = ItemIO.INPUT, label = "Fusion Type", choices = {
+            FusionType.AVERAGE, FusionType.LINEAR_BLENDING,
+            FusionType.MAX_INTENSITY, FusionType.MEDIAN,
+            FusionType.MIN_INTENSITY, FusionType.NO_FUSE, FusionType.OVERLAY })
+    private String fusionMethod = FusionType.AVERAGE;
+
     @Parameter(type = ItemIO.OUTPUT)
-    private ImagePlus output;
+    private ImgPlus<T> output;
 
     @Override
     public void run() {
@@ -76,15 +84,8 @@ public class StitchingPlugin<T extends RealType<T>> implements Command {
         params.channel1 = 0;
         params.channel2 = 0;
 
-        input1.setRoi(createRoi(input1));
-        input2.setRoi(createRoi(input2));
-
         output =
                 Stitching_Pairwise.performPairWiseStitching(input1, input2,
-                        params);
-    }
-
-    private Roi createRoi(ImagePlus img) {
-        return new Roi(0, 0, img.getWidth(), img.getHeight());
+                        params, ops);
     }
 }
