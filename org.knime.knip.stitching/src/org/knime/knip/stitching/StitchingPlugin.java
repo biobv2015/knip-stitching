@@ -1,22 +1,19 @@
 package org.knime.knip.stitching;
 
-import mpicbg.stitching.math.CommonFunctions.FusionType;
-import mpicbg.stitching.plugin.Stitching_Pairwise;
-import mpicbg.stitching.stitching.StitchingParameters;
-import net.imagej.ImgPlus;
-import net.imagej.ops.OpService;
-import net.imglib2.type.numeric.RealType;
-
+import org.knime.knip.stitching.lib.Stitching_Pairwise;
 import org.scijava.ItemIO;
 import org.scijava.command.Command;
 import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-@Plugin(
-        menu = { @Menu(label = "DeveloperPlugins"), @Menu(label = "Stitching") },
-        description = "Very simple thresholder", headless = true,
-        type = Command.class)
+import net.imagej.ImgPlus;
+import net.imagej.ops.OpService;
+import net.imglib2.type.numeric.RealType;
+
+@Plugin(menu = { @Menu(label = "DeveloperPlugins"),
+        @Menu(label = "Stitching") }, description = "Very simple thresholder",
+        headless = true, type = Command.class)
 public class StitchingPlugin<T extends RealType<T>> implements Command {
 
     @Parameter(type = ItemIO.INPUT, label = "Image 1")
@@ -55,10 +52,11 @@ public class StitchingPlugin<T extends RealType<T>> implements Command {
     @Parameter(type = ItemIO.INPUT)
     private OpService ops;
 
-    @Parameter(type = ItemIO.INPUT, label = "Fusion Type", choices = {
-            FusionType.AVERAGE, FusionType.LINEAR_BLENDING,
-            FusionType.MAX_INTENSITY, FusionType.MEDIAN,
-            FusionType.MIN_INTENSITY, FusionType.NO_FUSE, FusionType.OVERLAY })
+    @Parameter(type = ItemIO.INPUT, label = "Fusion Type",
+            choices = { FusionType.AVERAGE, FusionType.LINEAR_BLENDING,
+                    FusionType.MAX_INTENSITY, FusionType.MEDIAN,
+                    FusionType.MIN_INTENSITY, FusionType.NO_FUSE,
+                    FusionType.OVERLAY })
     private String fusionMethod = FusionType.AVERAGE;
 
     @Parameter(type = ItemIO.OUTPUT)
@@ -84,8 +82,7 @@ public class StitchingPlugin<T extends RealType<T>> implements Command {
         params.channel1 = 0;
         params.channel2 = 0;
 
-        output =
-                Stitching_Pairwise.performPairWiseStitching(input1, input2,
-                        params, ops);
+        output = Stitching_Pairwise.performPairWiseStitching(input1, input2,
+                params, ops);
     }
 }
