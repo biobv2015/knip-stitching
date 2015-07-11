@@ -17,7 +17,10 @@ Require-Bundle: org.knime.base,
  imagej-common;bundle-version="0.12.2",
  ij;bundle-version="1.49.0",
  imagej-ops;bundle-version="0.15.1",
- imglib2-algorithm
+ imglib2-algorithm,
+ imglib2-ij,
+ org.junit,
+ scifio
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ClassPath: knip-example.jar
 Bundle-ActivationPolicy: lazy
