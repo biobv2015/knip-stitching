@@ -1,6 +1,8 @@
 package org.knime.knip.stitching;
 
+import org.knime.knip.stitching.lib.StitchingParameters;
 import org.knime.knip.stitching.lib.Stitching_Pairwise;
+import org.knime.knip.stitching.util.FusionType;
 import org.scijava.ItemIO;
 import org.scijava.command.Command;
 import org.scijava.plugin.Menu;
@@ -12,7 +14,7 @@ import net.imagej.ops.OpService;
 import net.imglib2.type.numeric.RealType;
 
 @Plugin(menu = { @Menu(label = "DeveloperPlugins"),
-        @Menu(label = "Stitching") }, description = "Very simple thresholder",
+        @Menu(label = "Stitching") }, description = "Pairwise Stitching Plugin",
         headless = true, type = Command.class)
 public class StitchingPlugin<T extends RealType<T>> implements Command {
 

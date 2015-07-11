@@ -3,8 +3,9 @@ package org.knime.knip.stitching.lib;
 import java.util.ArrayList;
 import java.util.List;
 
-import mpicbg.stitching.utils.ComplexImageHelpers;
-import mpicbg.stitching.utils.FixedSizePriorityQueue;
+import org.knime.knip.stitching.util.ComplexImageHelpers;
+import org.knime.knip.stitching.util.FixedSizePriorityQueue;
+
 import net.imagej.ImgPlus;
 import net.imagej.ops.OpService;
 import net.imglib2.Cursor;
@@ -12,7 +13,6 @@ import net.imglib2.algorithm.neighborhood.Neighborhood;
 import net.imglib2.algorithm.neighborhood.RectangleShape;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgs;
-import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.outofbounds.OutOfBoundsConstantValueFactory;
 import net.imglib2.outofbounds.OutOfBoundsFactory;
 import net.imglib2.outofbounds.OutOfBoundsMirrorExpWindowingFactory;
@@ -80,19 +80,21 @@ public class PairWiseStitchingImgLib {
         // Img<ComplexFloatType> fft1 = (Img<ComplexFloatType>)
         // ops.run(FFT.class, img1.getImg(), mirrorPad);
 
-        Img<ComplexFloatType> fft1 = (Img<ComplexFloatType>) ops.fft(img1);
-        Img<ComplexFloatType> fft2 = (Img<ComplexFloatType>) ops.fft(img2);
+        Img<ComplexFloatType> fft1 =
+                (Img<ComplexFloatType>) ops.filter().fft(img1);
+        Img<ComplexFloatType> fft2 =
+                (Img<ComplexFloatType>) ops.filter().fft(img2);
 
-//        ImageJFunctions.show(fft1, "fft 1");
-//        ImageJFunctions.show(fft2, "fft 2");
+        // ImageJFunctions.show(fft1, "fft 1");
+        // ImageJFunctions.show(fft2, "fft 2");
 
         // TODO Create op for this!
         ComplexImageHelpers.normalizeComplexImage(fft1, normalizationThreshold);
         ComplexImageHelpers.normalizeAndConjugateComplexImage(fft2,
                 normalizationThreshold);
 
-//        ImageJFunctions.show(fft1, "normalized fft 1");
-//        ImageJFunctions.show(fft2, "normalized, conjugated fft2");
+        // ImageJFunctions.show(fft1, "normalized fft 1");
+        // ImageJFunctions.show(fft2, "normalized, conjugated fft2");
 
         // multiply the complex images
         Cursor<ComplexFloatType> fft1cursor = fft1.cursor();
@@ -102,8 +104,8 @@ public class PairWiseStitchingImgLib {
             fft1cursor.next().mul(fft2RA.next());
         }
 
-        ops.ifft(outManual, fft1);
-//        ImageJFunctions.show(outManual, "manual");
+        ops.filter().ifft(outManual, fft1);
+        // ImageJFunctions.show(outManual, "manual");
 
         List<PhaseCorrelationPeak> peaks =
                 extractPhaseCorrelationPeaks(outManual, params.checkPeaks, ops);
@@ -118,7 +120,7 @@ public class PairWiseStitchingImgLib {
         PhaseCorrelationPeak topPeak = peaks.get(peaks.size() - 1);
 
         PairWiseStitchingResult result = new PairWiseStitchingResult(
-                topPeak.getPosition(), topPeak.phaseCorrelationPeak,
+                topPeak.getPosition(), topPeak.getPhaseCorrelationPeak(),
                 topPeak.getCrossCorrelationPeak());
 
         return result;
@@ -180,7 +182,7 @@ public class PairWiseStitchingImgLib {
 
     /**
      * Extract the n best peaks in the phase correlation.
-     * 
+     *
      * @param invPCM
      *            the Inverted Phase correlation matrix
      * @param numPeaks
