@@ -1,8 +1,8 @@
 package org.knime.knip.stitching.lib;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import org.knime.knip.core.ops.img.algorithms.PhaseCorrelationPeak;
 import org.knime.knip.stitching.util.ComplexImageHelpers;
 import org.knime.knip.stitching.util.FixedSizePriorityQueue;
 
@@ -13,12 +13,13 @@ import net.imglib2.algorithm.neighborhood.Neighborhood;
 import net.imglib2.algorithm.neighborhood.RectangleShape;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgs;
+import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.outofbounds.OutOfBoundsConstantValueFactory;
 import net.imglib2.outofbounds.OutOfBoundsFactory;
 import net.imglib2.outofbounds.OutOfBoundsMirrorExpWindowingFactory;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.complex.ComplexFloatType;
-import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.util.Util;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
@@ -36,7 +37,7 @@ import net.imglib2.view.Views;
  */
 public class PairWiseStitchingImgLib {
 
-    private static final float normalizationThreshold = 1E-5f;
+    public static final float normalizationThreshold = 1E-5f;
 
     public static <T extends RealType<T>> PairWiseStitchingResult stitchPairwise(
             final ImgPlus<T> imp1, final ImgPlus<T> imp2, final int timepoint1,
@@ -50,13 +51,12 @@ public class PairWiseStitchingImgLib {
             // Log.error("Pairwise stitching failed.");
             return null;
         }
-
         // add the offset to the shift
-        result.offset[0] -= imp2.max(0);
-        result.offset[1] -= imp2.max(1);
-
-        result.offset[0] += imp1.max(1);
-        result.offset[1] += imp1.max(1);
+        // result.offset[0] -= imp2.max(0);
+        // result.offset[1] -= imp2.max(1);
+        //
+        // result.offset[0] += imp1.max(1);
+        // result.offset[1] += imp1.max(1);
 
         return result;
     }
@@ -66,6 +66,7 @@ public class PairWiseStitchingImgLib {
             final ImgPlus<T> img1, final ImgPlus<T> img2,
             StitchingParameters params, OpService ops) {
 
+        // TODO: DO WE Need this?
         int padding = 512;
         OutOfBoundsMirrorExpWindowingFactory<T, Img<T>> mirrorPad =
                 new OutOfBoundsMirrorExpWindowingFactory<T, Img<T>>(padding);
@@ -74,44 +75,31 @@ public class PairWiseStitchingImgLib {
                 new OutOfBoundsConstantValueFactory<T, Img<T>>(
                         Util.getTypeFromInterval(img1).createVariable());
 
-        long[] size = new long[] { 512, 512 };
-        Img<FloatType> outManual = ArrayImgs.floats(size);
-
-        // Img<ComplexFloatType> fft1 = (Img<ComplexFloatType>)
-        // ops.run(FFT.class, img1.getImg(), mirrorPad);
+        long[] size = new long[img1.numDimensions()];
+        img1.dimensions(size);
+        Img<DoubleType> outManual = ArrayImgs.doubles(size);
 
         Img<ComplexFloatType> fft1 =
-                (Img<ComplexFloatType>) ops.filter().fft(img1);
+                (Img<ComplexFloatType>) ops.filter().fft(img1.getImg());
         Img<ComplexFloatType> fft2 =
                 (Img<ComplexFloatType>) ops.filter().fft(img2);
 
-        // ImageJFunctions.show(fft1, "fft 1");
-        // ImageJFunctions.show(fft2, "fft 2");
+        //
+        ImageJFunctions.show(fft1, "fft 1");
+        ImageJFunctions.show(fft2, "fft 2");
 
-        // TODO Create op for this!
-        ComplexImageHelpers.normalizeComplexImage(fft1, normalizationThreshold);
-        ComplexImageHelpers.normalizeAndConjugateComplexImage(fft2,
-                normalizationThreshold);
+        ComplexImageHelpers.calculateCrossPowerSpektrum(fft1, fft2);
 
-        // ImageJFunctions.show(fft1, "normalized fft 1");
-        // ImageJFunctions.show(fft2, "normalized, conjugated fft2");
-
-        // multiply the complex images
-        Cursor<ComplexFloatType> fft1cursor = fft1.cursor();
-        Cursor<ComplexFloatType> fft2RA = fft2.cursor();
-
-        while (fft1cursor.hasNext()) {
-            fft1cursor.next().mul(fft2RA.next());
-        }
-
+        // return to pixelspace
         ops.filter().ifft(outManual, fft1);
         // ImageJFunctions.show(outManual, "manual");
 
         List<PhaseCorrelationPeak> peaks =
                 extractPhaseCorrelationPeaks(outManual, params.checkPeaks, ops);
-        System.out.println(peaks.toString());
-
-        verifyWithCrossCorrelation(peaks, size, img1, img2);
+        //
+        // PhaseCorrelation.verifyWithCrossCorrelation(peaks, size,
+        // img1.getImg(),
+        // img2.getImg());
 
         if (params.subpixelAccuracy) {
             // TODO: Subpixel accuracy?
@@ -124,59 +112,6 @@ public class PairWiseStitchingImgLib {
                 topPeak.getCrossCorrelationPeak());
 
         return result;
-
-    }
-
-    private static <T extends RealType<T>> void verifyWithCrossCorrelation(
-            final List<PhaseCorrelationPeak> peaks, final long[] dims,
-            final ImgPlus<T> img1, final ImgPlus<T> img2) {
-
-        // final boolean[][] coordinates =
-        // Util.getRecursiveCoordinates(img1.numDimensions());
-
-        @SuppressWarnings("unused")
-        final ArrayList<PhaseCorrelationPeak> newPeakList =
-                new ArrayList<PhaseCorrelationPeak>();
-
-        // no need to wrap the point coordinates
-
-        // //
-        // // test them multithreaded
-        // //
-        // final AtomicInteger ai = new AtomicInteger(0);
-        // Thread[] threads = SimpleMultiThreading.newThreads(4);
-        // final int numThreads = threads.length;
-        //
-        // for (int ithread = 0; ithread < threads.length; ++ithread)
-        // threads[ithread] = new Thread(new Runnable() {
-        // public void run() {
-        // final int myNumber = ai.getAndIncrement();
-        //
-        // for (int i = 0; i < newPeakList.size(); ++i)
-        // if (i % numThreads == myNumber) {
-        // final PhaseCorrelationPeak peak =
-        // newPeakList.get(i);
-        // final long[] numPixels = new long[1];
-        //
-        // peak.setCrossCorrelationPeak(
-        // (float) testCrossCorrelation(
-        // peak.getPosition(), image1, image2,
-        // minOverlapPx, numPixels));
-        // peak.setNumPixels(numPixels[0]);
-        //
-        // // sort by cross correlation peak
-        // peak.setSortPhaseCorrelation(false);
-        // }
-        //
-        // }
-        // });
-        //
-        // SimpleMultiThreading.startAndJoin(threads);
-        //
-        // // update old list and sort
-        // peakList.clear();
-        // peakList.addAll(newPeakList);
-        // Collections.sort(peakList);
 
     }
 
@@ -221,7 +156,10 @@ public class PairWiseStitchingImgLib {
                 }
             }
             // queue ensures only n best are added.
-            peaks.add(new PhaseCorrelationPeak(maxPos, maxValue));
+            PhaseCorrelationPeak peak =
+                    new PhaseCorrelationPeak(maxPos, (float) maxValue);
+            peak.setOriginalInvPCMPosition(maxPos);
+            peaks.add(peak);
         }
         return peaks.asList();
     }

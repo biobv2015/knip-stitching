@@ -1,7 +1,7 @@
 package org.knime.knip.stitching;
 
 import org.knime.knip.stitching.lib.StitchingParameters;
-import org.knime.knip.stitching.lib.Stitching_Pairwise;
+import org.knime.knip.stitching.lib.PairwiseStitching;
 import org.knime.knip.stitching.util.FusionType;
 import org.scijava.ItemIO;
 import org.scijava.command.Command;
@@ -84,7 +84,7 @@ public class StitchingPlugin<T extends RealType<T>> implements Command {
         params.channel1 = 0;
         params.channel2 = 0;
 
-        output = Stitching_Pairwise.performPairWiseStitching(input1, input2,
+        output = PairwiseStitching.performPairWiseStitching(input1, input2,
                 params, ops);
     }
 }
