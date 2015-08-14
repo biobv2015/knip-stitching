@@ -17,6 +17,7 @@ import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.outofbounds.OutOfBoundsConstantValueFactory;
 import net.imglib2.outofbounds.OutOfBoundsFactory;
 import net.imglib2.outofbounds.OutOfBoundsMirrorExpWindowingFactory;
+import net.imglib2.realtransform.AffineGet;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.complex.ComplexFloatType;
 import net.imglib2.type.numeric.real.DoubleType;
@@ -42,10 +43,15 @@ public class PairWiseStitchingImgLib {
     public static <T extends RealType<T>> PairWiseStitchingResult stitchPairwise(
             final ImgPlus<T> imp1, final ImgPlus<T> imp2, final int timepoint1,
             final int timepoint2, final StitchingParameters params,
-            OpService opservice) {
+            OpService ops) {
         PairWiseStitchingResult result = null;
 
-        result = computePhaseCorrelation(imp1, imp2, params, opservice);
+        AffineGet affineTransform =
+                ops.filter().phaseCorrelate(imp1, imp2, normalizationThreshold);
+
+        affineTransform.toString();
+
+        // result = computePhaseCorrelation(imp1, imp2, params, ops);
 
         if (result == null) {
             // Log.error("Pairwise stitching failed.");

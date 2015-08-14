@@ -57,8 +57,10 @@ public class ComplexImageHelpers {
      */
     public static <T extends ComplexFloatType> void calculateCrossPowerSpektrum(
             Img<T> fft1, Img<T> fft2) {
+
         normalizeComplexImage(fft1,
                 PairWiseStitchingImgLib.normalizationThreshold);
+
         normalizeAndConjugateComplexImage(fft2,
                 PairWiseStitchingImgLib.normalizationThreshold);
 

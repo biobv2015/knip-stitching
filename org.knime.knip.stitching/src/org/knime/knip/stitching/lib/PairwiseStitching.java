@@ -83,8 +83,11 @@ public class PairwiseStitching {
 
         RandomAccess<T> img1RA = img1.randomAccess();
         RandomAccess<T> img2RA = Views.offset(img2, offset).randomAccess();
+        // FIXME only supports 2d
         FinalInterval outInterval =
-                Intervals.createMinMax(0, 0, outImgsize[0], outImgsize[1]); // fixme
+                Intervals.createMinMax(0, 0, outImgsize[0], outImgsize[1]);
+
+        // TODO: implement different fusion types
 
         T outType = img1.firstElement().createVariable();
 
