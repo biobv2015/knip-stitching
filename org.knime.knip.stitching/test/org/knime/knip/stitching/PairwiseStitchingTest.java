@@ -4,31 +4,22 @@ import org.junit.Test;
 import org.knime.knip.stitching.lib.PairwiseStitching;
 import org.knime.knip.stitching.lib.StitchingParameters;
 import org.knime.knip.stitching.util.AbstractOpTest;
-import org.scijava.Context;
-import org.scijava.app.StatusService;
-import org.scijava.plugin.Parameter;
 
-import io.scif.SCIFIOService;
 import io.scif.img.ImgIOException;
 import io.scif.img.ImgOpener;
 import io.scif.img.SCIFIOImgPlus;
 import net.imagej.ImgPlus;
-import net.imagej.ops.OpService;
 import net.imglib2.type.numeric.RealType;
 
 public class PairwiseStitchingTest<T extends RealType<T>>
         extends AbstractOpTest {
-
-    @Parameter
-    OpService ops;
 
     @SuppressWarnings("unchecked")
     @Test
     public void test() throws ImgIOException {
         StitchingParameters params = new StitchingParameters();
 
-        Context context = new Context(SCIFIOService.class, StatusService.class);
-        ImgOpener opener = new ImgOpener(context);
+        ImgOpener opener = new ImgOpener();
 
         SCIFIOImgPlus<T> sfimp1 = (SCIFIOImgPlus<T>) opener
                 .openImgs("res/testimgs/img3-1.png.ome.tif").get(0);
