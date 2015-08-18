@@ -4,22 +4,18 @@ import java.util.ArrayList;
 
 import net.imagej.ImgPlus;
 import net.imagej.ops.OpService;
-import net.imglib2.Cursor;
-import net.imglib2.FinalInterval;
-import net.imglib2.RandomAccess;
-import net.imglib2.img.Img;
-import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.realtransform.AffineGet;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.util.Intervals;
-import net.imglib2.view.Views;
 
 public class PairwiseStitching {
+
+    private static final float normalizationThreshold = 1E-5f;
 
     public static <T extends RealType<T>> ImgPlus<T> performPairWiseStitching(
             final ImgPlus<T> imp1, final ImgPlus<T> imp2,
             final StitchingParameters params, OpService ops) {
 
-        PairWiseStitchingResult result = null;
+        AffineGet result = null;
         // the simplest case, only one registration necessary
         if (imp1.dimension(params.channel1) == 1 || params.timeSelect == 0) {
             result = singleTimepointStitching(imp1, imp2, params, ops);
@@ -30,19 +26,31 @@ public class PairwiseStitching {
         return fuseImg(imp1, imp2, params, result, ops);
     }
 
-    private static <T extends RealType<T>> PairWiseStitchingResult singleTimepointStitching(
+    private static <T extends RealType<T>> AffineGet singleTimepointStitching(
             final ImgPlus<T> imp1, final ImgPlus<T> imp2,
-            final StitchingParameters params, OpService opservice) {
+            final StitchingParameters params, OpService ops) {
         // compute the stitching
         final long start = System.currentTimeMillis();
 
-        final PairWiseStitchingResult result;
-
         // Always compute overlap!
-        result = PairWiseStitchingImgLib.stitchPairwise(imp1, imp2, 1, 1,
-                params, opservice);
+        // result = PairWiseStitchingImgLib.stitchPairwise(imp1, imp2, 1, 1,
+        // params, opservice);
 
-        return result;
+        AffineGet affineTransform =
+                ops.filter().phaseCorrelate(imp1, imp2, normalizationThreshold);
+
+        affineTransform.toString();
+
+        // result = computePhaseCorrelation(imp1, imp2, params, ops);
+
+        // add the offset to the shift
+        // result.offset[0] -= imp2.max(0);
+        // result.offset[1] -= imp2.max(1);
+        //
+        // result.offset[0] += imp1.max(1);
+        // result.offset[1] += imp1.max(1);
+
+        return affineTransform;
     }
 
     /**
@@ -56,8 +64,8 @@ public class PairwiseStitching {
      */
     private static <T extends RealType<T>> ImgPlus<T> fuseImg(
             final ImgPlus<T> imp1, final ImgPlus<T> imp2,
-            final StitchingParameters params,
-            final PairWiseStitchingResult result, OpService ops) {
+            final StitchingParameters params, final AffineGet result,
+            OpService ops) {
 
         final long start = System.currentTimeMillis();
         final ImgPlus<T> resultImg = fuse(imp1, imp2, params, result, ops);
@@ -68,50 +76,44 @@ public class PairwiseStitching {
     @SuppressWarnings("deprecation")
     private static <T extends RealType<T>> ImgPlus<T> fuse(
             final ImgPlus<T> img1, final ImgPlus<T> img2,
-            final StitchingParameters params, PairWiseStitchingResult result,
-            OpService ops) {
+            final StitchingParameters params, AffineGet result, OpService ops) {
         final ArrayList<ImgPlus<T>> images = new ArrayList<ImgPlus<T>>();
         images.add(img1);
         images.add(img2);
 
-        long[] offset = result.getOffset();
+        // TODO extract offset from affineTransform, implement fusionTypes then
+        // apply
 
-        long[] outImgsize = new long[img1.numDimensions()];
-        for (int i = 0; i < img1.numDimensions(); i++) {
-            outImgsize[i] = img1.dimension(i) + Math.abs(offset[i]);
-        }
+        // long[] offset = result();
 
-        RandomAccess<T> img1RA = img1.randomAccess();
-        RandomAccess<T> img2RA = Views.offset(img2, offset).randomAccess();
-        // FIXME only supports 2d
-        FinalInterval outInterval =
-                Intervals.createMinMax(0, 0, outImgsize[0], outImgsize[1]);
-
-        // TODO: implement different fusion types
-
-        T outType = img1.firstElement().createVariable();
-
-        outType.setOne();
-        outType.add(outType);
-
-        Img<T> outImg = ops.create().img(outInterval, outType);
-
-        Cursor<T> outcursor = outImg.localizingCursor();
-        long[] tempPos = new long[outImg.numDimensions()];
-        while (outcursor.hasNext()) {
-            outcursor.fwd();
-            outcursor.localize(tempPos);
-            img1RA.setPosition(tempPos);
-            img2RA.setPosition(tempPos);
-
-            T i1 = img1RA.get();
-            T i2 = img2RA.get();
-            i1.mul(i2);
-            i1.div(outType);
-            outcursor.get().set(i1);
-        }
-        ImageJFunctions.show(outImg);
-        return ImgPlus.wrap(outImg);
+        /*
+         * long[] outImgsize = new long[img1.numDimensions()]; for (int i = 0; i
+         * < img1.numDimensions(); i++) { outImgsize[i] = img1.dimension(i) +
+         * Math.abs(offset[i]); }
+         *
+         * RandomAccess<T> img1RA = img1.randomAccess(); RandomAccess<T> img2RA
+         * = Views.offset(img2, offset).randomAccess(); // FIXME only supports
+         * 2d FinalInterval outInterval = Intervals.createMinMax(0, 0,
+         * outImgsize[0], outImgsize[1]);
+         *
+         * // TODO: implement different fusion types
+         *
+         * T outType = img1.firstElement().createVariable();
+         *
+         * outType.setOne(); outType.add(outType);
+         *
+         * Img<T> outImg = ops.create().img(outInterval, outType);
+         *
+         * Cursor<T> outcursor = outImg.localizingCursor(); long[] tempPos = new
+         * long[outImg.numDimensions()]; while (outcursor.hasNext()) {
+         * outcursor.fwd(); outcursor.localize(tempPos);
+         * img1RA.setPosition(tempPos); img2RA.setPosition(tempPos);
+         *
+         * T i1 = img1RA.get(); T i2 = img2RA.get(); i1.mul(i2);
+         * i1.div(outType); outcursor.get().set(i1); } return
+         * ImgPlus.wrap(outImg);
+         */
+        return null;
     }
 
     // T a = offsetimg2.get();
