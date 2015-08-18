@@ -1,7 +1,7 @@
 package org.knime.knip.stitching;
 
-import org.knime.knip.stitching.lib.StitchingParameters;
 import org.knime.knip.stitching.lib.PairwiseStitching;
+import org.knime.knip.stitching.lib.StitchingParameters;
 import org.knime.knip.stitching.util.FusionType;
 import org.scijava.ItemIO;
 import org.scijava.command.Command;
@@ -27,29 +27,8 @@ public class StitchingPlugin<T extends RealType<T>> implements Command {
     @Parameter(type = ItemIO.INPUT, label = "Check Peaks")
     private int checkPeaks = 200;
 
-    @Parameter(type = ItemIO.INPUT, label = "Channel img 1")
-    private int channelImg1 = 0;
-
-    @Parameter(type = ItemIO.INPUT, label = "Channel img 2")
-    private int channelImg2 = 0;
-
-    @Parameter(type = ItemIO.INPUT, label = "Add Tiles as Rois")
-    private boolean addTilesAsRois = false;
-
-    @Parameter(type = ItemIO.INPUT, label = "Compute Overlap")
-    private boolean computeOverlap = true;
-
-    @Parameter(type = ItemIO.INPUT, label = "Down Sample")
-    private boolean downSample = false;
-
-    @Parameter(type = ItemIO.INPUT, label = "Name of Fused Image")
-    private String fusedName = "Fused";
-
     @Parameter(type = ItemIO.INPUT, label = "subPixel accuracy")
     private boolean subPixelAccuracy = true;
-
-    @Parameter(type = ItemIO.INPUT, label = "Dimensionality")
-    private int dimensionality = 2;
 
     @Parameter(type = ItemIO.INPUT)
     private OpService ops;
@@ -70,19 +49,10 @@ public class StitchingPlugin<T extends RealType<T>> implements Command {
         StitchingParameters params = new StitchingParameters();
 
         // from user
-        params.addTilesAsRois = addTilesAsRois;
+
         params.checkPeaks = checkPeaks;
-        params.downSample = downSample;
-        params.fusedName = fusedName;
         params.fusionMethod = fusionMethod;
         params.subpixelAccuracy = subPixelAccuracy;
-        params.dimensionality = dimensionality;
-
-        // required
-        params.computeOverlap = true;
-        // always use all channels
-        params.channel1 = 0;
-        params.channel2 = 0;
 
         output = PairwiseStitching.performPairWiseStitching(input1, input2,
                 params, ops);
