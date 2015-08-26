@@ -3,7 +3,6 @@ package org.knime.knip.stitching.lib;
 import java.util.ArrayList;
 
 import net.imagej.ImgPlus;
-import net.imagej.axis.Axes;
 import net.imagej.ops.OpService;
 import net.imglib2.realtransform.AffineGet;
 import net.imglib2.type.numeric.RealType;
@@ -19,17 +18,17 @@ public class PairwiseStitching {
         AffineGet result = null;
 
         // FIXME check the if conditions
-        int relevantDim = imp1.dimensionIndex(Axes.TIME);
-        if (relevantDim == -1) {
-            return null;
-        }
+        /*
+         * int relevantDim = imp1.dimensionIndex(Axes.TIME); if (relevantDim ==
+         * -1) { return null; }
+         */
         // the simplest case, only one registration necessary
-        if (relevantDim < 2) {
-            result = singleTimepointStitching(imp1, imp2, params, ops);
-        } else {
-            // multiTimepointStitching(imp1, imp2, params, models, ops);
-            // TODO: IMPLEMENT
-        }
+        // if (relevantDim < 2) {
+        result = singleTimepointStitching(imp1, imp2, params, ops);
+        // } else {
+        // multiTimepointStitching(imp1, imp2, params, models, ops);
+        // TODO: IMPLEMENT
+        // }
         return fuseImg(imp1, imp2, params, result, ops);
     }
 
