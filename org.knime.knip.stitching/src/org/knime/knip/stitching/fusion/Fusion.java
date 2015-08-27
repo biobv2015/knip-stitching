@@ -44,20 +44,25 @@ public class Fusion {
                         outImgsize[1] - 1);
 
         if (fusionType == FusionType.AVERAGE) {
-            // avg
             out = calcAvg(ops, img1, img2, outInterval);
         } else if (fusionType == FusionType.INTENSITY_RANDOM_TILE) {
-            // kp
+            // TODO
+            out = calcIntensityRandomTile(ops, img1, img2, outInterval);
         } else if (fusionType == FusionType.LINEAR_BLENDING) {
-            // linear blending
+            // TODO
+            out = calcLinearBlending(ops, img1, img2, outInterval);
         } else if (fusionType == FusionType.MAX_INTENSITY) {
-            // max
+            // TODO
+            out = calcMaxIntensity(ops, img1, img2, outInterval);
         } else if (fusionType == FusionType.MEDIAN) {
-            // median
+            // TODO
+            out = calcMedian(ops, img1, img2, outInterval);
         } else if (fusionType == FusionType.MIN_INTENSITY) {
-            // min
+            // TODO
+            out = calcMinIntensity(ops, img1, img2, outInterval);
         } else if (fusionType == FusionType.OVERLAY) {
-            // kp
+            // TODO
+            out = calcOverlay(ops, img1, img2, outInterval);
         } else if (fusionType == FusionType.NO_FUSE) {
             return null;
         }
@@ -87,6 +92,54 @@ public class Fusion {
             img2Value.div(type);
             outCursor.get().set(img2Value);
         }
+        return outImg;
+    }
+
+    private <T extends RealType<T>> Img<T> calcIntensityRandomTile(
+            OpService ops, RandomAccess<T> img1, RandomAccess<T> img2,
+            FinalInterval outInterval) {
+        T type = (T) ops.create().nativeType(img1.get().getClass());
+        Img<T> outImg = ops.create().img(outInterval, type);
+        return outImg;
+    }
+
+    private <T extends RealType<T>> Img<T> calcLinearBlending(OpService ops,
+            RandomAccess<T> img1, RandomAccess<T> img2,
+            FinalInterval outInterval) {
+        T type = (T) ops.create().nativeType(img1.get().getClass());
+        Img<T> outImg = ops.create().img(outInterval, type);
+        return outImg;
+    }
+
+    private <T extends RealType<T>> Img<T> calcMaxIntensity(OpService ops,
+            RandomAccess<T> img1, RandomAccess<T> img2,
+            FinalInterval outInterval) {
+        T type = (T) ops.create().nativeType(img1.get().getClass());
+        Img<T> outImg = ops.create().img(outInterval, type);
+        return outImg;
+    }
+
+    private <T extends RealType<T>> Img<T> calcMinIntensity(OpService ops,
+            RandomAccess<T> img1, RandomAccess<T> img2,
+            FinalInterval outInterval) {
+        T type = (T) ops.create().nativeType(img1.get().getClass());
+        Img<T> outImg = ops.create().img(outInterval, type);
+        return outImg;
+    }
+
+    private <T extends RealType<T>> Img<T> calcMedian(OpService ops,
+            RandomAccess<T> img1, RandomAccess<T> img2,
+            FinalInterval outInterval) {
+        T type = (T) ops.create().nativeType(img1.get().getClass());
+        Img<T> outImg = ops.create().img(outInterval, type);
+        return outImg;
+    }
+
+    private <T extends RealType<T>> Img<T> calcOverlay(OpService ops,
+            RandomAccess<T> img1, RandomAccess<T> img2,
+            FinalInterval outInterval) {
+        T type = (T) ops.create().nativeType(img1.get().getClass());
+        Img<T> outImg = ops.create().img(outInterval, type);
         return outImg;
     }
 
