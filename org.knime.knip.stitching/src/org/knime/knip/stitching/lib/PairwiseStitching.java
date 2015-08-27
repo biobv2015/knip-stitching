@@ -5,7 +5,12 @@ import java.util.ArrayList;
 import net.imagej.ImgPlus;
 import net.imagej.ops.OpService;
 import net.imglib2.realtransform.AffineGet;
+import net.imglib2.realtransform.AffineTransform;
 import net.imglib2.type.numeric.RealType;
+
+import org.knime.knip.stitching.fusion.Fusion;
+
+import Jama.Matrix;
 
 public class PairwiseStitching {
 
@@ -16,6 +21,8 @@ public class PairwiseStitching {
             final StitchingParameters params, OpService ops) {
 
         AffineGet result = null;
+
+        AffineGet testResult = generateTestTransform();
 
         // FIXME check the if conditions
         /*
@@ -29,8 +36,41 @@ public class PairwiseStitching {
         // multiTimepointStitching(imp1, imp2, params, models, ops);
         // TODO: IMPLEMENT
         // }
+
+        Fusion fuse = new Fusion();
+        fuse.fuse(params.fusionMethod, imp1, imp2, testResult, ops);
+
         return fuseImg(imp1, imp2, params, result, ops);
     }
+
+    // ========================================================================
+    // TODO compare this method with filling of phasecorrelate op before removal
+    private static AffineGet generateTestTransform() {
+        long[] peakPosition = { 8, 2 };
+        int size = 2;
+        double[][] translationArray = new double[size + 1][size + 2];
+        for (int i = 0; i <= size; i++) {
+            for (int j = 0; j <= size; j++) {
+                if (i == j) {
+                    translationArray[i][j] = 1;
+                } else if (j == size) {
+                    if (peakPosition.length <= i) {
+                        translationArray[i][j] = 0;
+                    } else {
+                        translationArray[i][j] = peakPosition[i];
+                    }
+                } else {
+                    translationArray[i][j] = 0;
+                }
+            }
+        }
+
+        Matrix matrix = new Matrix(translationArray);
+        AffineGet testResult = new AffineTransform(matrix);
+        return testResult;
+    }
+
+    // =======================================================================
 
     private static <T extends RealType<T>> AffineGet singleTimepointStitching(
             final ImgPlus<T> imp1, final ImgPlus<T> imp2,
@@ -96,25 +136,25 @@ public class PairwiseStitching {
          * long[] outImgsize = new long[img1.numDimensions()]; for (int i = 0; i
          * < img1.numDimensions(); i++) { outImgsize[i] = img1.dimension(i) +
          * Math.abs(offset[i]); }
-         *
+         * 
          * RandomAccess<T> img1RA = img1.randomAccess(); RandomAccess<T> img2RA
          * = Views.offset(img2, offset).randomAccess(); // FIXME only supports
          * 2d FinalInterval outInterval = Intervals.createMinMax(0, 0,
          * outImgsize[0], outImgsize[1]);
-         *
+         * 
          * // TODO: implement different fusion types
-         *
+         * 
          * T outType = img1.firstElement().createVariable();
-         *
+         * 
          * outType.setOne(); outType.add(outType);
-         *
+         * 
          * Img<T> outImg = ops.create().img(outInterval, outType);
-         *
+         * 
          * Cursor<T> outcursor = outImg.localizingCursor(); long[] tempPos = new
          * long[outImg.numDimensions()]; while (outcursor.hasNext()) {
          * outcursor.fwd(); outcursor.localize(tempPos);
          * img1RA.setPosition(tempPos); img2RA.setPosition(tempPos);
-         *
+         * 
          * T i1 = img1RA.get(); T i2 = img2RA.get(); i1.mul(i2);
          * i1.div(outType); outcursor.get().set(i1); } return
          * ImgPlus.wrap(outImg);
