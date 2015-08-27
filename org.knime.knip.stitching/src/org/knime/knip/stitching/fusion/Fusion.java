@@ -21,7 +21,7 @@ public class Fusion {
 
         RandomAccessibleInterval<T> out = null;
 
-        // FIXME dirtiest hack ever
+        // FIXME
         int n = in1.numDimensions();
         long[] offset = new long[n];
         for (int i = 0; i < 2; i++) {
@@ -44,6 +44,7 @@ public class Fusion {
                         outImgsize[1] - 1);
 
         if (fusionType == FusionType.AVERAGE) {
+            // TODO verify
             out = calcAvg(ops, img1, img2, outInterval);
         } else if (fusionType == FusionType.INTENSITY_RANDOM_TILE) {
             // TODO
@@ -52,13 +53,13 @@ public class Fusion {
             // TODO
             out = calcLinearBlending(ops, img1, img2, outInterval);
         } else if (fusionType == FusionType.MAX_INTENSITY) {
-            // TODO
+            // TODO verify
             out = calcMaxIntensity(ops, img1, img2, outInterval);
         } else if (fusionType == FusionType.MEDIAN) {
             // TODO
             out = calcMedian(ops, img1, img2, outInterval);
         } else if (fusionType == FusionType.MIN_INTENSITY) {
-            // TODO
+            // TODO verify
             out = calcMinIntensity(ops, img1, img2, outInterval);
         } else if (fusionType == FusionType.OVERLAY) {
             // TODO
@@ -69,6 +70,7 @@ public class Fusion {
         return out;
     }
 
+    // FIXME Average, min and max result in ArrayIndexOutOfBoundsException
     private <T extends RealType<T>> Img<T> calcAvg(OpService ops,
             RandomAccess<T> img1, RandomAccess<T> img2,
             FinalInterval outInterval) {
@@ -87,7 +89,6 @@ public class Fusion {
 
             T img1Value = img1.get();
             T img2Value = img2.get();
-            // arrayIndexoutOfBoundsexception 490000:
             img2Value.add(img1Value);
             img2Value.div(type);
             outCursor.get().set(img2Value);
@@ -116,6 +117,22 @@ public class Fusion {
             FinalInterval outInterval) {
         T type = (T) ops.create().nativeType(img1.get().getClass());
         Img<T> outImg = ops.create().img(outInterval, type);
+        Cursor<T> outCursor = outImg.localizingCursor();
+        long[] pos = new long[outImg.numDimensions()];
+        while (outCursor.hasNext()) {
+            outCursor.fwd();
+            outCursor.localize(pos);
+            img1.setPosition(pos);
+            img2.setPosition(pos);
+
+            T img1Value = img1.get();
+            T img2Value = img2.get();
+            if (img1Value.compareTo(img2Value) < 0) {
+                outCursor.get().set(img2Value);
+            } else {
+                outCursor.get().set(img1Value);
+            }
+        }
         return outImg;
     }
 
@@ -124,6 +141,22 @@ public class Fusion {
             FinalInterval outInterval) {
         T type = (T) ops.create().nativeType(img1.get().getClass());
         Img<T> outImg = ops.create().img(outInterval, type);
+        Cursor<T> outCursor = outImg.localizingCursor();
+        long[] pos = new long[outImg.numDimensions()];
+        while (outCursor.hasNext()) {
+            outCursor.fwd();
+            outCursor.localize(pos);
+            img1.setPosition(pos);
+            img2.setPosition(pos);
+
+            T img1Value = img1.get();
+            T img2Value = img2.get();
+            if (img1Value.compareTo(img2Value) < 0) {
+                outCursor.get().set(img1Value);
+            } else {
+                outCursor.get().set(img2Value);
+            }
+        }
         return outImg;
     }
 
