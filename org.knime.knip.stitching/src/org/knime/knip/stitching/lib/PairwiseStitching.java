@@ -1,22 +1,20 @@
 package org.knime.knip.stitching.lib;
 
-import java.util.ArrayList;
-
-import net.imagej.ImgPlus;
-import net.imagej.ops.OpService;
-import net.imglib2.realtransform.AffineGet;
-import net.imglib2.realtransform.AffineTransform;
-import net.imglib2.type.numeric.RealType;
-
 import org.knime.knip.stitching.fusion.Fusion;
 
 import Jama.Matrix;
+import net.imagej.ImgPlus;
+import net.imagej.ops.OpService;
+import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.realtransform.AffineGet;
+import net.imglib2.realtransform.AffineTransform;
+import net.imglib2.type.numeric.RealType;
 
 public class PairwiseStitching {
 
     private static final float normalizationThreshold = 1E-5f;
 
-    public static <T extends RealType<T>> ImgPlus<T> performPairWiseStitching(
+    public static <T extends RealType<T>> RandomAccessibleInterval<T> performPairWiseStitching(
             final ImgPlus<T> imp1, final ImgPlus<T> imp2,
             final StitchingParameters params, OpService ops) {
 
@@ -37,10 +35,7 @@ public class PairwiseStitching {
         // TODO: IMPLEMENT
         // }
 
-        Fusion fuse = new Fusion();
-        fuse.fuse(params.fusionMethod, imp1, imp2, testResult, ops);
-
-        return fuseImg(imp1, imp2, params, result, ops);
+        return Fusion.fuse(params.fusionMethod, imp1, imp2, testResult, ops);
     }
 
     // ========================================================================

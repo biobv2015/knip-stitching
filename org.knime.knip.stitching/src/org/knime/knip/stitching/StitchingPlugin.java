@@ -11,6 +11,7 @@ import org.scijava.plugin.Plugin;
 
 import net.imagej.ImgPlus;
 import net.imagej.ops.OpService;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.numeric.RealType;
 
 @Plugin(menu = { @Menu(label = "DeveloperPlugins"),
@@ -41,7 +42,7 @@ public class StitchingPlugin<T extends RealType<T>> implements Command {
     private String fusionMethod = FusionType.AVERAGE;
 
     @Parameter(type = ItemIO.OUTPUT)
-    private ImgPlus<T> output;
+    private RandomAccessibleInterval<T> output;
 
     @Override
     public void run() {

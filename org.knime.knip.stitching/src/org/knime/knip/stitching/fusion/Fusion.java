@@ -15,7 +15,7 @@ import net.imglib2.view.Views;
 
 public class Fusion {
 
-    public <T extends RealType<T>> RandomAccessibleInterval<T> fuse(
+    public static <T extends RealType<T>> RandomAccessibleInterval<T> fuse(
             String fusionType, RandomAccessibleInterval<T> in1,
             RandomAccessibleInterval<T> in2, AffineGet transform,
             OpService ops) {
@@ -30,18 +30,21 @@ public class Fusion {
         }
         // moving in1 such that in1 and in2 have the same point in their
         // origin
-        RandomAccess<T> img1 = in1.randomAccess();
-        RandomAccess<T> img2 = Views.translate(in2, offset).randomAccess();
+        RandomAccess<T> img1 = Views.extendZero(in2).randomAccess();
+        RandomAccess<T> img2 =
+                Views.translate(Views.extendZero(in2), offset).randomAccess();
 
         // output size is sum of img sizes minus the overlap
         long[] outImgsize = new long[in1.numDimensions()];
         for (int i = 0; i < in1.numDimensions(); i++) {
             outImgsize[i] = in1.dimension(i) + in2.dimension(i)
-                    - (in1.dimension(i) - offset[i]);
+                    - (in1.dimension(i) - offset[i]); // for correct result
+                                                      // size when 0
+                                                      // indexing
         }
 
-        FinalInterval outInterval = Intervals.createMinMax(0, 0,
-                outImgsize[0], outImgsize[1]);
+        FinalInterval outInterval =
+                Intervals.createMinMax(0, 0, outImgsize[0], outImgsize[1]);
 
         if (fusionType == FusionType.AVERAGE) {
             // TODO verify
@@ -71,7 +74,7 @@ public class Fusion {
     }
 
     // FIXME Average, min and max result in ArrayIndexOutOfBoundsException
-    private <T extends RealType<T>> Img<T> calcAvg(OpService ops,
+    private static <T extends RealType<T>> Img<T> calcAvg(OpService ops,
             RandomAccess<T> img1, RandomAccess<T> img2,
             FinalInterval outInterval) {
         T type = (T) ops.create().nativeType(img1.get().getClass());
@@ -96,7 +99,7 @@ public class Fusion {
         return outImg;
     }
 
-    private <T extends RealType<T>> Img<T> calcIntensityRandomTile(
+    private static <T extends RealType<T>> Img<T> calcIntensityRandomTile(
             OpService ops, RandomAccess<T> img1, RandomAccess<T> img2,
             FinalInterval outInterval) {
         T type = (T) ops.create().nativeType(img1.get().getClass());
@@ -104,19 +107,21 @@ public class Fusion {
         return outImg;
     }
 
-    private <T extends RealType<T>> Img<T> calcLinearBlending(OpService ops,
-            RandomAccess<T> img1, RandomAccess<T> img2,
+    private static <T extends RealType<T>> Img<T> calcLinearBlending(
+            OpService ops, RandomAccess<T> img1, RandomAccess<T> img2,
             FinalInterval outInterval) {
         T type = (T) ops.create().nativeType(img1.get().getClass());
         Img<T> outImg = ops.create().img(outInterval, type);
         return outImg;
     }
 
-    private <T extends RealType<T>> Img<T> calcMaxIntensity(OpService ops,
-            RandomAccess<T> img1, RandomAccess<T> img2,
+    @SuppressWarnings("unchecked")
+    private static <T extends RealType<T>> Img<T> calcMaxIntensity(
+            OpService ops, RandomAccess<T> img1, RandomAccess<T> img2,
             FinalInterval outInterval) {
-        T type = (T) ops.create().nativeType(img1.get().getClass());
-        Img<T> outImg = ops.create().img(outInterval, type);
+
+        // TODO change with the others as well
+        Img<T> outImg = ops.create().img(outInterval, img1.get());
         Cursor<T> outCursor = outImg.localizingCursor();
         long[] pos = new long[outImg.numDimensions()];
         while (outCursor.hasNext()) {
@@ -136,8 +141,8 @@ public class Fusion {
         return outImg;
     }
 
-    private <T extends RealType<T>> Img<T> calcMinIntensity(OpService ops,
-            RandomAccess<T> img1, RandomAccess<T> img2,
+    private static <T extends RealType<T>> Img<T> calcMinIntensity(
+            OpService ops, RandomAccess<T> img1, RandomAccess<T> img2,
             FinalInterval outInterval) {
         T type = (T) ops.create().nativeType(img1.get().getClass());
         Img<T> outImg = ops.create().img(outInterval, type);
@@ -160,7 +165,7 @@ public class Fusion {
         return outImg;
     }
 
-    private <T extends RealType<T>> Img<T> calcMedian(OpService ops,
+    private static <T extends RealType<T>> Img<T> calcMedian(OpService ops,
             RandomAccess<T> img1, RandomAccess<T> img2,
             FinalInterval outInterval) {
         T type = (T) ops.create().nativeType(img1.get().getClass());
@@ -168,7 +173,7 @@ public class Fusion {
         return outImg;
     }
 
-    private <T extends RealType<T>> Img<T> calcOverlay(OpService ops,
+    private static <T extends RealType<T>> Img<T> calcOverlay(OpService ops,
             RandomAccess<T> img1, RandomAccess<T> img2,
             FinalInterval outInterval) {
         T type = (T) ops.create().nativeType(img1.get().getClass());
