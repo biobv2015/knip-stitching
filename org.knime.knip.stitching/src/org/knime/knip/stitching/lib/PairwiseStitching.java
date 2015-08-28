@@ -29,7 +29,9 @@ public class PairwiseStitching {
          */
         // the simplest case, only one registration necessary
         // if (relevantDim < 2) {
-        result = singleTimepointStitching(imp1, imp2, params, ops);
+
+        // result = singleTimepointStitching(imp1, imp2, params, ops);
+
         // } else {
         // multiTimepointStitching(imp1, imp2, params, models, ops);
         // TODO: IMPLEMENT
@@ -41,7 +43,7 @@ public class PairwiseStitching {
     // ========================================================================
     // TODO compare this method with filling of phasecorrelate op before removal
     private static AffineGet generateTestTransform() {
-        long[] peakPosition = { 0, 200 };
+        long[] peakPosition = { -700, -220 };
         int size = 2;
         double[][] translationArray = new double[size + 1][size + 2];
         for (int i = 0; i <= size; i++) {

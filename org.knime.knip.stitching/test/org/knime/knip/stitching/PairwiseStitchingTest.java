@@ -18,7 +18,7 @@ public class PairwiseStitchingTest<T extends RealType<T>>
         extends AbstractOpTest {
 
     @SuppressWarnings("unchecked")
-    @Test
+    // @Test
     public void testAverage() throws ImgIOException {
 
         ImgOpener opener = new ImgOpener();
@@ -44,21 +44,25 @@ public class PairwiseStitchingTest<T extends RealType<T>>
         ImgOpener opener = new ImgOpener();
 
         ImgPlus<T> sfimp1 = (SCIFIOImgPlus<T>) opener
-                .openImgs("res/testimgs/img3-1.png.ome.tif").get(0);
+                .openImgs("res/testimgs/square0.ome.tif").get(0);
         ImgPlus<T> sfimp2 = (SCIFIOImgPlus<T>) opener
                 .openImgs("res/testimgs/img3-2.png.ome.tif").get(0);
 
         ImgPlus<T> imp1 = ImgPlus.wrap(sfimp1);
-        ImgPlus<T> imp2 = ImgPlus.wrap(sfimp2);
+        ImgPlus<T> imp2 = ImgPlus.wrap(sfimp1);
 
         StitchingParameters params = new StitchingParameters();
         params.fusionMethod = FusionType.MIN_INTENSITY;
 
-        PairwiseStitching.performPairWiseStitching(imp1, imp2, params, ops);
+        RandomAccessibleInterval<T> outimg = PairwiseStitching
+                .performPairWiseStitching(imp1, imp2, params, ops);
+        ImageJFunctions.show(outimg);
+        System.out.println("blub");
+
     }
 
     @SuppressWarnings("unchecked")
-    @Test
+    // @Test
     public void testMax() throws ImgIOException {
         ImgOpener opener = new ImgOpener();
 

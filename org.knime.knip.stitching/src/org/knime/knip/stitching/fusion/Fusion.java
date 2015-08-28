@@ -8,6 +8,7 @@ import net.imglib2.FinalInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
+import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.realtransform.AffineGet;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Intervals;
@@ -28,48 +29,43 @@ public class Fusion {
         for (int i = 0; i < 2; i++) {
             offset[i] = (long) transform.get(i, 2);
         }
-        // moving in1 such that in1 and in2 have the same point in their
-        // origin
-        RandomAccess<T> img1 = Views.extendZero(in2).randomAccess();
-        RandomAccess<T> img2 =
-                Views.translate(Views.extendZero(in2), offset).randomAccess();
 
         // output size is sum of img sizes minus the overlap
         long[] outImgsize = new long[in1.numDimensions()];
         for (int i = 0; i < in1.numDimensions(); i++) {
             outImgsize[i] = in1.dimension(i) + in2.dimension(i)
-                    - (in1.dimension(i) - offset[i]); // for correct result
-                                                      // size when 0
-                                                      // indexing
+                    - (in1.dimension(i) - Math.abs(offset[i]));
         }
 
         FinalInterval outInterval =
                 Intervals.createMinMax(0, 0, outImgsize[0], outImgsize[1]);
-
-        if (fusionType == FusionType.AVERAGE) {
+        //
+        // if (fusionType == FusionType.AVERAGE) {
+        // // TODO verify
+        // out = calcAvg(ops, img1, img2, outInterval);
+        // } else if (fusionType == FusionType.INTENSITY_RANDOM_TILE) {
+        // // TODO
+        // out = calcIntensityRandomTile(ops, img1, img2, outInterval);
+        // } else if (fusionType == FusionType.LINEAR_BLENDING) {
+        // // TODO
+        // out = calcLinearBlending(ops, img1, img2, outInterval);
+        // } else if (fusionType == FusionType.MAX_INTENSITY) {
+        // // TODO verify
+        // out = calcMaxIntensity(ops, img1, img2, outInterval);
+        // } else if (fusionType == FusionType.MEDIAN) {
+        // // TODO
+        // out = calcMedian(ops, img1, img2, outInterval);
+        // } else
+        if (fusionType == FusionType.MIN_INTENSITY) {
             // TODO verify
-            out = calcAvg(ops, img1, img2, outInterval);
-        } else if (fusionType == FusionType.INTENSITY_RANDOM_TILE) {
-            // TODO
-            out = calcIntensityRandomTile(ops, img1, img2, outInterval);
-        } else if (fusionType == FusionType.LINEAR_BLENDING) {
-            // TODO
-            out = calcLinearBlending(ops, img1, img2, outInterval);
-        } else if (fusionType == FusionType.MAX_INTENSITY) {
-            // TODO verify
-            out = calcMaxIntensity(ops, img1, img2, outInterval);
-        } else if (fusionType == FusionType.MEDIAN) {
-            // TODO
-            out = calcMedian(ops, img1, img2, outInterval);
-        } else if (fusionType == FusionType.MIN_INTENSITY) {
-            // TODO verify
-            out = calcMinIntensity(ops, img1, img2, outInterval);
-        } else if (fusionType == FusionType.OVERLAY) {
-            // TODO
-            out = calcOverlay(ops, img1, img2, outInterval);
-        } else if (fusionType == FusionType.NO_FUSE) {
-            return null;
+            out = calcMinIntensity(ops, in1, in2, outInterval, offset);
         }
+        // } else if (fusionType == FusionType.OVERLAY) {
+        // // TODO
+        // out = calcOverlay(ops, img1, img2, outInterval);
+        // } else if (fusionType == FusionType.NO_FUSE) {
+        // return null;
+        // }
         return out;
     }
 
@@ -122,6 +118,9 @@ public class Fusion {
 
         // TODO change with the others as well
         Img<T> outImg = ops.create().img(outInterval, img1.get());
+
+        ImageJFunctions.show(outImg);
+
         Cursor<T> outCursor = outImg.localizingCursor();
         long[] pos = new long[outImg.numDimensions()];
         while (outCursor.hasNext()) {
@@ -132,6 +131,7 @@ public class Fusion {
 
             T img1Value = img1.get();
             T img2Value = img2.get();
+
             if (img1Value.compareTo(img2Value) < 0) {
                 outCursor.get().set(img2Value);
             } else {
@@ -142,8 +142,25 @@ public class Fusion {
     }
 
     private static <T extends RealType<T>> Img<T> calcMinIntensity(
-            OpService ops, RandomAccess<T> img1, RandomAccess<T> img2,
-            FinalInterval outInterval) {
+            OpService ops, RandomAccessibleInterval<T> in1,
+            RandomAccessibleInterval<T> in2, FinalInterval outInterval,
+            long[] offset) {
+
+        long[] maxPos = new long[in2.numDimensions()];
+        in2.max(maxPos);
+        in2.randomAccess().setPosition(maxPos);
+        RandomAccess<T> img1 =
+                Views.extendValue(in1, in2.randomAccess().get()).randomAccess();
+
+        in1.max(maxPos);
+        in1.randomAccess().setPosition(maxPos);
+
+        // moving in1 such that in1 and in2 have the same point in their
+        // origin
+        RandomAccess<T> img2 =
+                Views.offset(Views.extendValue(in2, in1.randomAccess().get()),
+                        offset).randomAccess();
+
         T type = (T) ops.create().nativeType(img1.get().getClass());
         Img<T> outImg = ops.create().img(outInterval, type);
         Cursor<T> outCursor = outImg.localizingCursor();
@@ -156,6 +173,7 @@ public class Fusion {
 
             T img1Value = img1.get();
             T img2Value = img2.get();
+
             if (img1Value.compareTo(img2Value) < 0) {
                 outCursor.get().set(img1Value);
             } else {
