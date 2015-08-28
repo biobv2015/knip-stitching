@@ -1,5 +1,7 @@
 package org.knime.knip.stitching.fusion;
 
+import org.knime.knip.stitching.util.FusionType;
+
 import net.imagej.ops.OpService;
 import net.imglib2.Cursor;
 import net.imglib2.FinalInterval;
@@ -11,13 +13,12 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.Views;
 
-import org.knime.knip.stitching.util.FusionType;
-
 public class Fusion {
 
     public <T extends RealType<T>> RandomAccessibleInterval<T> fuse(
             String fusionType, RandomAccessibleInterval<T> in1,
-            RandomAccessibleInterval<T> in2, AffineGet transform, OpService ops) {
+            RandomAccessibleInterval<T> in2, AffineGet transform,
+            OpService ops) {
 
         RandomAccessibleInterval<T> out = null;
 
@@ -29,19 +30,18 @@ public class Fusion {
         }
         // moving in1 such that in1 and in2 have the same point in their
         // origin
-        RandomAccess<T> img1 = Views.offset(in1, offset).randomAccess();
-        RandomAccess<T> img2 = in2.randomAccess();
+        RandomAccess<T> img1 = in1.randomAccess();
+        RandomAccess<T> img2 = Views.translate(in2, offset).randomAccess();
 
-        // size of output is max size of both images
+        // output size is sum of img sizes minus the overlap
         long[] outImgsize = new long[in1.numDimensions()];
         for (int i = 0; i < in1.numDimensions(); i++) {
-            long max = Math.max(in1.dimension(i), in2.dimension(i));
-            outImgsize[i] = max;
+            outImgsize[i] = in1.dimension(i) + in2.dimension(i)
+                    - (in1.dimension(i) - offset[i]);
         }
 
-        FinalInterval outInterval =
-                Intervals.createMinMax(0, 0, outImgsize[0] - 1,
-                        outImgsize[1] - 1);
+        FinalInterval outInterval = Intervals.createMinMax(0, 0,
+                outImgsize[0], outImgsize[1]);
 
         if (fusionType == FusionType.AVERAGE) {
             // TODO verify
