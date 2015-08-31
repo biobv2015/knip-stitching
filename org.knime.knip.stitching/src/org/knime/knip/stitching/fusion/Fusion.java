@@ -173,7 +173,6 @@ public class Fusion {
 
             // moving cursor positions according to the offset, otherwise we
             // miss the real origin in certain situations
-            // miss the real
             img1Pos[0] = pos[0];
             img1Pos[1] = pos[1];
             img2Pos[0] = pos[0];
