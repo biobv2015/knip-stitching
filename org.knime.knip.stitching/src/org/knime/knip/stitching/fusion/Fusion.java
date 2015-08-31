@@ -165,11 +165,31 @@ public class Fusion {
         Img<T> outImg = ops.create().img(outInterval, type);
         Cursor<T> outCursor = outImg.localizingCursor();
         long[] pos = new long[outImg.numDimensions()];
+        long[] img1Pos = new long[outImg.numDimensions()];
+        long[] img2Pos = new long[outImg.numDimensions()];
         while (outCursor.hasNext()) {
             outCursor.fwd();
             outCursor.localize(pos);
-            img1.setPosition(pos);
-            img2.setPosition(pos);
+
+            // moving cursor positions according to the offset, otherwise we
+            // miss the real origin in certain situations
+            // miss the real
+            img1Pos[0] = pos[0];
+            img1Pos[1] = pos[1];
+            img2Pos[0] = pos[0];
+            img2Pos[1] = pos[1];
+
+            if (offset[0] > -1) {
+                img1Pos[0] -= offset[0];
+                img2Pos[0] -= offset[0];
+            }
+            if (offset[1] > -1) {
+                img1Pos[1] -= offset[1];
+                img2Pos[1] -= offset[1];
+            }
+
+            img1.setPosition(img1Pos);
+            img2.setPosition(img2Pos);
 
             T img1Value = img1.get();
             T img2Value = img2.get();
