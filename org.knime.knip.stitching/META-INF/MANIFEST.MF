@@ -21,9 +21,9 @@ Require-Bundle: org.knime.base,
  imglib2-realtransform,
  imglib2-algorithm-gpl,
  imglib2-roi;bundle-version="0.3.2",
- org.knime.knip.imagej2.core;bundle-version="0.10.0"
+ org.knime.knip.imagej2.core;bundle-version="0.10.0",
+ imagej-ops;bundle-version="0.17.2"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
-Bundle-ClassPath: knip-example.jar,
- lib/imagej-ops-0.17.2-PC.jar
+Bundle-ClassPath: knip-example.jar
 Bundle-ActivationPolicy: lazy
 
