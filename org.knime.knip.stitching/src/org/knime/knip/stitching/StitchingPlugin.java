@@ -36,7 +36,7 @@ public class StitchingPlugin<T extends RealType<T>> implements Command {
 
     @Parameter(type = ItemIO.INPUT, label = "Fusion Type",
             choices = { FusionType.MAX_INTENSITY, FusionType.MIN_INTENSITY, })
-    private String fusionMethod = FusionType.AVERAGE;
+    private String fusionMethod = FusionType.MAX_INTENSITY;
 
     @Parameter(type = ItemIO.OUTPUT)
     private ImgPlus<T> output;
