@@ -15,6 +15,10 @@ public class PairwiseStitching {
             final ImgPlus<T> imp1, final ImgPlus<T> imp2,
             final StitchingParameters params, OpService ops) {
 
+        // copy input since pc op corrupts these objects
+        RandomAccessibleInterval<T> fuseImg1 = imp1.copy();
+        RandomAccessibleInterval<T> fuseImg2 = imp2.copy();
+
         // compute the stitching
         long[] offset =
                 ops.filter().phaseCorrelate(imp1, imp2, normalizationThreshold);
@@ -32,7 +36,7 @@ public class PairwiseStitching {
         // TODO: IMPLEMENT
         // }
 
-        return fuse(params.fusionMethod, imp1, imp2, offset, ops);
+        return fuse(params.fusionMethod, fuseImg1, fuseImg2, offset, ops);
     }
 
     public static <T extends RealType<T>> RandomAccessibleInterval<T> fuse(
