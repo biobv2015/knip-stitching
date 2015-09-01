@@ -11,11 +11,11 @@ import org.scijava.plugin.Plugin;
 
 import net.imagej.ImgPlus;
 import net.imagej.ops.OpService;
-import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.img.ImgView;
 import net.imglib2.type.numeric.RealType;
 
 @Plugin(menu = { @Menu(label = "DeveloperPlugins"),
-        @Menu(label = "Stitching") }, description = "Pairwise Stitching Plugin",
+        @Menu(label = "Stitching Plugin") }, description = "Stitching Plugin",
         headless = true, type = Command.class)
 public class StitchingPlugin<T extends RealType<T>> implements Command {
 
@@ -39,7 +39,7 @@ public class StitchingPlugin<T extends RealType<T>> implements Command {
     private String fusionMethod = FusionType.AVERAGE;
 
     @Parameter(type = ItemIO.OUTPUT)
-    private RandomAccessibleInterval<T> output;
+    private ImgPlus<T> output;
 
     @Override
     public void run() {
@@ -52,7 +52,9 @@ public class StitchingPlugin<T extends RealType<T>> implements Command {
         params.fusionMethod = fusionMethod;
         params.subpixelAccuracy = subPixelAccuracy;
 
-        output = PairwiseStitching.performPairWiseStitching(input1, input2,
-                params, ops);
+        output = new ImgPlus<T>(
+                ImgView.wrap(PairwiseStitching.performPairWiseStitching(input1,
+                        input2, params, ops), input1.factory()),
+                input1);
     }
 }

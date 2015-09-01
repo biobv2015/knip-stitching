@@ -41,13 +41,12 @@ public class PairwiseStitching {
         // TODO: IMPLEMENT
         // }
 
-        return fuse(params.fusionMethod, imp1, imp2, result, ops);
+        return fuse(params.fusionMethod, imp1, imp2, testResult, ops);
     }
 
     // ========================================================================
-    // TODO compare this method with filling of phasecorrelate op before removal
     private static AffineGet generateTestTransform() {
-        long[] peakPosition = { -700, -220 };
+        long[] peakPosition = { -30, -20 };
         int size = 2;
         double[][] translationArray = new double[size + 1][size + 2];
         for (int i = 0; i <= size; i++) {
@@ -72,18 +71,6 @@ public class PairwiseStitching {
     }
 
     // =======================================================================
-
-    private static <T extends RealType<T>> AffineGet singleTimepointStitching(
-            final ImgPlus<T> imp1, final ImgPlus<T> imp2,
-            final StitchingParameters params, OpService ops) {
-        // compute the stitching
-        final long start = System.currentTimeMillis();
-
-        AffineGet affineTransform =
-                ops.filter().phaseCorrelate(imp1, imp2, normalizationThreshold);
-
-        return affineTransform;
-    }
 
     public static <T extends RealType<T>> RandomAccessibleInterval<T> fuse(
             String fusionType, RandomAccessibleInterval<T> in1,
