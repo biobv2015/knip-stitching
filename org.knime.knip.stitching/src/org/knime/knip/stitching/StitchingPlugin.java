@@ -35,10 +35,7 @@ public class StitchingPlugin<T extends RealType<T>> implements Command {
     private OpService ops;
 
     @Parameter(type = ItemIO.INPUT, label = "Fusion Type",
-            choices = { FusionType.AVERAGE, FusionType.LINEAR_BLENDING,
-                    FusionType.MAX_INTENSITY, FusionType.MEDIAN,
-                    FusionType.MIN_INTENSITY, FusionType.NO_FUSE,
-                    FusionType.OVERLAY })
+            choices = { FusionType.MAX_INTENSITY, FusionType.MIN_INTENSITY, })
     private String fusionMethod = FusionType.AVERAGE;
 
     @Parameter(type = ItemIO.OUTPUT)

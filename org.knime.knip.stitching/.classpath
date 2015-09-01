@@ -4,5 +4,6 @@
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="test"/>
+	<classpathentry kind="lib" path="lib/imagej-ops-0.17.2-PC.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

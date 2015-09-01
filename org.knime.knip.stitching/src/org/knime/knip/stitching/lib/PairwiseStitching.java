@@ -1,6 +1,6 @@
 package org.knime.knip.stitching.lib;
 
-import org.knime.knip.stitching.fusion.Fusion;
+import org.knime.knip.stitching.util.FusionType;
 
 import Jama.Matrix;
 import net.imagej.ImgPlus;
@@ -21,6 +21,12 @@ public class PairwiseStitching {
         AffineGet result = null;
 
         AffineGet testResult = generateTestTransform();
+        // compute the stitching
+
+        AffineGet affineTransform =
+                ops.filter().phaseCorrelate(imp1, imp2, normalizationThreshold);
+
+        result = affineTransform;
 
         // FIXME check the if conditions
         /*
@@ -30,14 +36,12 @@ public class PairwiseStitching {
         // the simplest case, only one registration necessary
         // if (relevantDim < 2) {
 
-        // result = singleTimepointStitching(imp1, imp2, params, ops);
-
         // } else {
         // multiTimepointStitching(imp1, imp2, params, models, ops);
         // TODO: IMPLEMENT
         // }
 
-        return Fusion.fuse(params.fusionMethod, imp1, imp2, testResult, ops);
+        return fuse(params.fusionMethod, imp1, imp2, result, ops);
     }
 
     // ========================================================================
@@ -75,18 +79,36 @@ public class PairwiseStitching {
         // compute the stitching
         final long start = System.currentTimeMillis();
 
-        // Always compute overlap!
-        // result = PairWiseStitchingImgLib.stitchPairwise(imp1, imp2, 1, 1,
-        // params, opservice);
-
         AffineGet affineTransform =
                 ops.filter().phaseCorrelate(imp1, imp2, normalizationThreshold);
 
-        affineTransform.toString();
-
-        // result = computePhaseCorrelation(imp1, imp2, params, ops);
-
         return affineTransform;
+    }
+
+    public static <T extends RealType<T>> RandomAccessibleInterval<T> fuse(
+            String fusionType, RandomAccessibleInterval<T> in1,
+            RandomAccessibleInterval<T> in2, AffineGet transform,
+            OpService ops) {
+
+        RandomAccessibleInterval<T> out = null;
+
+        int n = in1.numDimensions();
+        long[] offset = new long[n];
+        for (int i = 0; i < 2; i++) {
+            offset[i] = (long) transform.get(i, 2);
+        }
+
+        //
+        if (FusionType.MIN_INTENSITY.equals(fusionType)) {
+            out = ops.image().fuseMin(in1, in2, offset);
+        } else if (FusionType.MAX_INTENSITY.equals(fusionType)) {
+            out = ops.image().fuseMax(in1, in2, offset);
+        } else {
+            throw new IllegalArgumentException(
+                    fusionType + " is not an implemented fusion type!");
+        }
+
+        return out;
     }
 
 }
