@@ -18,15 +18,15 @@ public class PairwiseStitching {
             final ImgPlus<T> imp1, final ImgPlus<T> imp2,
             final StitchingParameters params, OpService ops) {
 
-        AffineGet result = null;
+        long[] result = null;
 
         AffineGet testResult = generateTestTransform();
         // compute the stitching
 
-        AffineGet affineTransform =
+        long[] offset =
                 ops.filter().phaseCorrelate(imp1, imp2, normalizationThreshold);
 
-        result = affineTransform;
+        result = offset;
 
         // FIXME check the if conditions
         /*
